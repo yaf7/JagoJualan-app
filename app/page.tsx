@@ -204,10 +204,10 @@ export default function Home() {
             </span>
           </div>
           <h1 className="animate-in-1 mb-5">
-            <span className="font-sans font-bold text-5xl sm:text-6xl text-gradient" style={{ lineHeight: 1.15, letterSpacing: "-0.03em", display: "block" }}>
+            <span className="font-sans font-bold text-5xl sm:text-6xl text-zinc-50" style={{ color: "#f8f9fa", lineHeight: 1.15, letterSpacing: "-0.03em", display: "block" }}>
               Stop banting harga,
             </span>
-            <span className="font-sans font-bold text-5xl sm:text-6xl text-gradient" style={{ lineHeight: 1.15, letterSpacing: "-0.03em", display: "block", marginTop: 4 }}>
+            <span className="font-sans font-bold text-5xl sm:text-6xl text-zinc-50" style={{ color: "#f8f9fa", lineHeight: 1.15, letterSpacing: "-0.03em", display: "block", marginTop: 4 }}>
               mulai jualan cerdas!
             </span>
           </h1>
