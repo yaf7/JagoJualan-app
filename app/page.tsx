@@ -461,7 +461,7 @@ export default function Home() {
           ) : history.length === 0 ? (
             <div className="surface p-8 text-center">
               <p className="text-sm" style={{ color: "var(--text-tertiary)" }}>Belum ada riwayat analisis.</p>
-              <p className="text-xs mt-1" style={{ color: "var(--text-tertiary)", opacity: 0.6 }}>Hasil analisis akan muncul di sini.</p>
+              <p className="text-xs mt-1" style={{ color: "var(--text-tertiary)" }}>Hasil analisis akan muncul di sini.</p>
             </div>
           ) : (
             <div className="space-y-2">
@@ -472,7 +472,7 @@ export default function Home() {
                     <span className="text-xs shrink-0 ml-3" style={{ color: "var(--text-tertiary)" }}>Rp{item.harga_jual.toLocaleString("id-ID")}</span>
                   </div>
                   <p className="text-xs line-clamp-2" style={{ color: "var(--text-tertiary)", lineHeight: 1.6 }}>{item.analisis_visual}</p>
-                  <p className="text-[11px] mt-2" style={{ color: "var(--text-tertiary)", opacity: 0.6 }}>{fmtDate(item.created_at)}</p>
+                  <p className="text-[11px] mt-2" style={{ color: "var(--text-tertiary)" }}>{fmtDate(item.created_at)}</p>
                 </div>
               ))}
             </div>
@@ -489,7 +489,7 @@ export default function Home() {
           </div>
           <div className="text-xs text-right space-y-1" style={{ color: "var(--text-tertiary)" }}>
             <p className="font-medium text-[11px] uppercase tracking-wide">Developed by Deyafa Arsetya</p>
-            <p className="opacity-70">Powered by Gemini AI · Supabase</p>
+            <p>Powered by Gemini AI · Supabase</p>
           </div>
         </div>
       </footer>
