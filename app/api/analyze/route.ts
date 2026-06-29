@@ -8,14 +8,15 @@ export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
     const imageFile = formData.get("image") as File | null;
+    const namaProduk = formData.get("namaProduk") as string;
     const hargaJual = formData.get("hargaJual") as string;
     const hargaKompetitor = formData.get("hargaKompetitor") as string;
     
     console.log("Using API Key starting with:", process.env.GEMINI_API_KEY?.substring(0, 15));
 
-    if (!imageFile || !hargaJual || !hargaKompetitor) {
+    if (!imageFile || !namaProduk || !hargaJual || !hargaKompetitor) {
       return NextResponse.json(
-        { error: "Semua field wajib diisi (gambar, harga jual, harga kompetitor)." },
+        { error: "Semua field wajib diisi (gambar, nama produk, harga jual, harga kompetitor)." },
         { status: 400 }
       );
     }
@@ -29,12 +30,13 @@ export async function POST(request: NextRequest) {
     // Build prompt
     const systemPrompt = `Kamu adalah 'JagoJualan AI', konsultan bisnis UMKM elit tingkat dewa.
 Tugasmu: Menganalisis foto produk ini untuk membantu UMKM "menang tanpa perang harga".
+Nama Produk: ${namaProduk}
 Harga jual UMKM: Rp${hargaJual}. Harga kompetitor termurah: Rp${hargaKompetitor}.
 
 INSTRUKSI WAJIB:
-1. Apapun objek utamanya, ASUMSIKAN itu adalah produk jualan UMKM (baik berupa kemasan kotak, stiker, poster, baju, makanan, dll). HANYA tolak jika gambar sepenuhnya gelap gulita atau murni selfie wajah tanpa barang. Jika ditolak, kembalikan JSON: { "error": "Gambar tidak terdeteksi sebagai produk jualan. Harap unggah foto produk yang lebih jelas." }
-2. Jika valid, cari keunggulan visual produk ini (kebersihan, kerapian, kesan premium, bahan, detail) sebagai argumen MENGAPA pelanggan pantas membayar lebih mahal (Rp${hargaJual}) dibanding kompetitor (Rp${hargaKompetitor}).
-3. Buat COPYWRITING yang persuasif (gunakan teknik psikologi marketing, FOMO, atau value-driven) lengkapi dengan EMOJI yang relevan agar siap disalin-tempel.
+1. Apapun objek utamanya, ASUMSIKAN itu adalah produk jualan UMKM dengan nama "${namaProduk}". HANYA tolak jika gambar sepenuhnya gelap gulita atau murni selfie wajah tanpa barang. Jika ditolak, kembalikan JSON: { "error": "Gambar tidak terdeteksi sebagai produk jualan. Harap unggah foto produk yang lebih jelas." }
+2. Jika valid, cari keunggulan visual produk "${namaProduk}" ini (kebersihan, kerapian, kesan premium, bahan, detail) sebagai argumen MENGAPA pelanggan pantas membayar lebih mahal (Rp${hargaJual}) dibanding kompetitor (Rp${hargaKompetitor}).
+3. Buat COPYWRITING yang persuasif (gunakan teknik psikologi marketing, FOMO, atau value-driven), sebutkan nama produk secara natural, lengkapi dengan EMOJI yang relevan agar siap disalin-tempel.
 4. Buat deskripsi ekspor dalam bahasa Inggris profesional, SEO-friendly, dan memukau pembeli global.
 
 WAJIB balas HANYA dengan JSON murni (tanpa tag markdown \`\`\`json).
@@ -98,6 +100,7 @@ Format JSON:
     // Save to Supabase
     try {
       await supabase.from("analisis").insert({
+        nama_produk: namaProduk,
         harga_jual: parseInt(hargaJual),
         harga_kompetitor: parseInt(hargaKompetitor),
         strategi_judul: parsedResult.strategiBisnis?.judul || "",

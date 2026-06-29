@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useCallback, useEffect } from "react";
+import html2canvas from "html2canvas";
 
 interface AnalysisResult {
   strategiBisnis: { judul: string; analisisVisual: string; saranTaktik: string };
@@ -9,7 +10,7 @@ interface AnalysisResult {
 }
 
 interface HistoryItem {
-  id: number; created_at: string; harga_jual: number; harga_kompetitor: number;
+  id: number; created_at: string; nama_produk: string; harga_jual: number; harga_kompetitor: number;
   strategi_judul: string; analisis_visual: string; saran_taktik: string;
   wa_copy: string; ig_copy: string; en_title: string; en_desc: string;
 }
@@ -47,6 +48,7 @@ const IconArrow = () => (
 export default function Home() {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [namaProduk, setNamaProduk] = useState("");
   const [hargaJual, setHargaJual] = useState("");
   const [hargaKompetitor, setHargaKompetitor] = useState("");
   const [isDragging, setIsDragging] = useState(false);
@@ -58,6 +60,9 @@ export default function Home() {
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [historyLoading, setHistoryLoading] = useState(true);
   const resultRef = useRef<HTMLDivElement>(null);
+  const [chatMessages, setChatMessages] = useState<{role: 'user'|'ai', text: string}[]>([]);
+  const [chatInput, setChatInput] = useState("");
+  const [isChatLoading, setIsChatLoading] = useState(false);
 
   const fetchHistory = useCallback(async () => {
     try { const res = await fetch("/api/history"); const json = await res.json(); setHistory(json.data || []); }
@@ -105,11 +110,12 @@ export default function Home() {
 
   const handleSubmit = async () => {
     if (!imageFile) { setError("Upload foto produk terlebih dahulu."); return; }
+    if (!namaProduk.trim()) { setError("Isi nama produk terlebih dahulu."); return; }
     const rj = parseRupiah(hargaJual), rk = parseRupiah(hargaKompetitor);
     if (!rj || !rk) { setError("Isi harga jual dan harga kompetitor."); return; }
-    setIsLoading(true); setError(null); setResult(null);
+    setIsLoading(true); setError(null); setResult(null); setChatMessages([]);
     try {
-      const fd = new FormData(); fd.append("image", imageFile); fd.append("hargaJual", rj); fd.append("hargaKompetitor", rk);
+      const fd = new FormData(); fd.append("image", imageFile); fd.append("namaProduk", namaProduk); fd.append("hargaJual", rj); fd.append("hargaKompetitor", rk);
       const res = await fetch("/api/analyze", { method: "POST", body: fd });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error || "Analisis gagal.");
@@ -122,6 +128,52 @@ export default function Home() {
   const handleCopy = async (text: string, id: string) => {
     try { await navigator.clipboard.writeText(text); } catch { const ta = document.createElement("textarea"); ta.value = text; document.body.appendChild(ta); ta.select(); document.execCommand("copy"); document.body.removeChild(ta); }
     setCopiedField(id); setTimeout(() => setCopiedField(null), 2000);
+  };
+
+  const handleDownloadReport = async () => {
+    if (!resultRef.current) return;
+    try {
+      const canvas = await html2canvas(resultRef.current, { backgroundColor: '#09090b', scale: 2 });
+      const imgData = canvas.toDataURL("image/jpeg", 0.9);
+      const link = document.createElement("a");
+      link.href = imgData;
+      link.download = `Laporan_JagoJualan_${namaProduk || "UMKM"}.jpg`;
+      link.click();
+    } catch (err) {
+      console.error("Gagal mendownload laporan", err);
+      alert("Gagal memproses gambar. Coba lagi.");
+    }
+  };
+
+  const handleChatSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!chatInput.trim() || isChatLoading || !imageFile) return;
+    
+    const newMsg = chatInput.trim();
+    setChatInput("");
+    const newHistory = [...chatMessages, { role: 'user' as const, text: newMsg }];
+    setChatMessages(newHistory);
+    setIsChatLoading(true);
+    
+    try {
+      const fd = new FormData();
+      fd.append("image", imageFile);
+      fd.append("namaProduk", namaProduk);
+      fd.append("hargaJual", parseRupiah(hargaJual));
+      fd.append("hargaKompetitor", parseRupiah(hargaKompetitor));
+      fd.append("chatHistory", JSON.stringify(newHistory));
+      
+      const res = await fetch("/api/chat", { method: "POST", body: fd });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || "Gagal menghubungi AI.");
+      
+      setChatMessages([...newHistory, { role: 'ai', text: json.data.text }]);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Terjadi kesalahan.");
+      setChatMessages(newHistory.slice(0, -1)); // Revert
+    } finally {
+      setIsChatLoading(false);
+    }
   };
 
   const fmtDate = (d: string) => new Date(d).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
@@ -206,6 +258,12 @@ export default function Home() {
               )}
             </div>
 
+            {/* Nama Produk */}
+            <div className="mb-4">
+              <label htmlFor="nama-produk" className="block text-xs font-medium mb-1.5" style={{ color: "var(--text-secondary)" }}>Nama produk</label>
+              <input id="nama-produk" type="text" placeholder="Contoh: Kripik Kaca Pedas Daun Jeruk" value={namaProduk} onChange={(e) => setNamaProduk(e.target.value)} className="input" />
+            </div>
+
             {/* Prices */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-5">
               <div>
@@ -262,11 +320,17 @@ export default function Home() {
 
       {/* ── RESULTS ── */}
       {result && (
-        <section className="pb-12" id="result-section" ref={resultRef}>
+        <section className="pb-12" id="result-section">
           <div className="max-w-2xl mx-auto px-5">
-            <p className="text-xs font-semibold uppercase tracking-wider mb-4 animate-in" style={{ color: "var(--text-tertiary)", letterSpacing: "0.08em" }}>Hasil Analisis</p>
+            <div className="flex items-center justify-between mb-4 animate-in">
+              <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--text-tertiary)", letterSpacing: "0.08em" }}>Hasil Analisis</p>
+              <button onClick={handleDownloadReport} className="text-xs font-medium px-3 py-1.5 rounded-lg flex items-center gap-2 transition-colors hover:bg-white/5" style={{ color: "var(--text-secondary)", border: "1px solid var(--border-default)" }} title="Download sebagai gambar">
+                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                Download Laporan
+              </button>
+            </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5" ref={resultRef}>
               {/* Card 1: Strategy (Full Width) */}
               <div className="surface p-6 sm:p-8 animate-slide-up md:col-span-2 relative overflow-hidden" id="card-strategi">
                 {/* Subtle background decoration */}
@@ -350,6 +414,36 @@ export default function Home() {
                 </div>
               </div>
             </div>
+
+            {/* INTERACTIVE CHAT */}
+            <div className="mt-8 pt-8 animate-slide-up" style={{ borderTop: "1px dashed var(--border-default)" }}>
+              <div className="flex items-center gap-2 mb-4">
+                <span className="label label-blue">Tanya Asisten AI</span>
+                <span className="text-xs" style={{ color: "var(--text-tertiary)" }}>Punya pertanyaan lain seputar strategi ini?</span>
+              </div>
+              
+              {chatMessages.length > 0 && (
+                <div className="mb-4 space-y-3">
+                  {chatMessages.map((msg, idx) => (
+                    <div key={idx} className={`p-4 rounded-xl text-sm ${msg.role === 'user' ? 'bg-white/5 ml-8 border border-white/10' : 'mr-8'}`} style={{ color: msg.role === 'user' ? 'var(--text-primary)' : 'var(--text-secondary)', background: msg.role === 'ai' ? 'var(--bg-subtle)' : undefined, border: msg.role === 'ai' ? '1px solid var(--border-default)' : undefined, lineHeight: 1.6, whiteSpace: "pre-wrap" }}>
+                      {msg.text}
+                    </div>
+                  ))}
+                  {isChatLoading && (
+                    <div className="mr-8 p-4 rounded-xl text-sm w-32" style={{ background: 'var(--bg-subtle)', border: '1px solid var(--border-default)' }}>
+                       <span className="dot-pulse" style={{ color: "var(--text-tertiary)" }}><span>.</span><span>.</span><span>.</span></span>
+                    </div>
+                  )}
+                </div>
+              )}
+              
+              <form onSubmit={handleChatSubmit} className="relative">
+                <input type="text" value={chatInput} onChange={e => setChatInput(e.target.value)} placeholder="Contoh: Gimana cara bikin promo bundle buat produk ini?" className="input pr-12" disabled={isChatLoading} />
+                <button type="submit" disabled={isChatLoading || !chatInput.trim()} className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-lg flex items-center justify-center bg-blue-500/10 text-blue-500 hover:bg-blue-500/20 disabled:opacity-50 disabled:hover:bg-blue-500/10 transition-colors">
+                  <IconArrow />
+                </button>
+              </form>
+            </div>
           </div>
         </section>
       )}
@@ -374,7 +468,7 @@ export default function Home() {
               {history.map((item, i) => (
                 <div key={item.id} className={`surface-interactive p-4 animate-in${i === 0 ? "" : i === 1 ? "-1" : "-2"}`} id={`history-item-${item.id}`}>
                   <div className="flex items-start justify-between mb-1.5">
-                    <h4 className="text-sm font-medium line-clamp-1" style={{ color: "var(--text-primary)" }}>{item.strategi_judul}</h4>
+                    <h4 className="text-sm font-medium line-clamp-1" style={{ color: "var(--text-primary)" }}>{item.nama_produk || item.strategi_judul}</h4>
                     <span className="text-xs shrink-0 ml-3" style={{ color: "var(--text-tertiary)" }}>Rp{item.harga_jual.toLocaleString("id-ID")}</span>
                   </div>
                   <p className="text-xs line-clamp-2" style={{ color: "var(--text-tertiary)", lineHeight: 1.6 }}>{item.analisis_visual}</p>
