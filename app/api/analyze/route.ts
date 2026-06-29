@@ -27,7 +27,33 @@ export async function POST(request: NextRequest) {
     const mimeType = imageFile.type || "image/jpeg";
 
     // Build prompt
-    const systemPrompt = `Kamu adalah 'JagoJualan AI', konsultan bisnis UMKM elit. Harga jual: Rp${hargaJual}. Harga kompetitor termurah: Rp${hargaKompetitor}. Analisis foto produk ini dengan teliti. Cari keunggulan visual (kebersihan, kerapian, kesan premium, dll) sebagai argumen MENGAPA user TIDAK perlu menurunkan harga. WAJIB balas HANYA dengan JSON murni tanpa markdown. Formatnya: { "strategiBisnis": { "judul": "...", "analisisVisual": "...", "saranTaktik": "..." }, "kontenLokal": { "whatsapp": "...", "instagram": "..." }, "kontenEkspor": { "englishTitle": "...", "englishDescription": "..." } }`;
+    const systemPrompt = `Kamu adalah 'JagoJualan AI', konsultan bisnis UMKM elit tingkat dewa.
+Tugasmu: Menganalisis foto produk ini untuk membantu UMKM "menang tanpa perang harga".
+Harga jual UMKM: Rp${hargaJual}. Harga kompetitor termurah: Rp${hargaKompetitor}.
+
+INSTRUKSI WAJIB:
+1. Apapun objek utamanya, ASUMSIKAN itu adalah produk jualan UMKM (baik berupa kemasan kotak, stiker, poster, baju, makanan, dll). HANYA tolak jika gambar sepenuhnya gelap gulita atau murni selfie wajah tanpa barang. Jika ditolak, kembalikan JSON: { "error": "Gambar tidak terdeteksi sebagai produk jualan. Harap unggah foto produk yang lebih jelas." }
+2. Jika valid, cari keunggulan visual produk ini (kebersihan, kerapian, kesan premium, bahan, detail) sebagai argumen MENGAPA pelanggan pantas membayar lebih mahal (Rp${hargaJual}) dibanding kompetitor (Rp${hargaKompetitor}).
+3. Buat COPYWRITING yang persuasif (gunakan teknik psikologi marketing, FOMO, atau value-driven) lengkapi dengan EMOJI yang relevan agar siap disalin-tempel.
+4. Buat deskripsi ekspor dalam bahasa Inggris profesional, SEO-friendly, dan memukau pembeli global.
+
+WAJIB balas HANYA dengan JSON murni (tanpa tag markdown \`\`\`json).
+Format JSON:
+{
+  "strategiBisnis": {
+    "judul": "(Judul strategi singkat, menarik, berkelas. Maksimal 6 kata)",
+    "analisisVisual": "(Penjelasan tajam mengapa produk di foto ini terlihat lebih mahal/berkualitas dari kompetitor. Fokus pada detail visual. Maks 3 kalimat)",
+    "saranTaktik": "(Saran taktik jualan praktis di lapangan untuk UMKM agar percaya diri dengan harganya. Maks 3 kalimat)"
+  },
+  "kontenLokal": {
+    "whatsapp": "(Teks broadcast WA santai tapi jualan, gunakan sapaan akrab, tonjolkan kualitas visual produk, akhiri dengan Call to Action & emoji yang pas)",
+    "instagram": "(Caption IG estetik, format rapi dengan spasi, gunakan hashtag relevan, tonjolkan value/kualitas, gunakan emoji)"
+  },
+  "kontenEkspor": {
+    "englishTitle": "(Judul produk B.Inggris, standar e-commerce internasional premium)",
+    "englishDescription": "(Deskripsi B.Inggris yang profesional, menonjolkan kualitas, SEO-friendly, siap pakai)"
+  }
+}`;
 
     // Call Gemini API
     const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
@@ -51,6 +77,14 @@ export async function POST(request: NextRequest) {
       const jsonMatch = responseText.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
         parsedResult = JSON.parse(jsonMatch[0]);
+        
+        // Handle invalid image error from Gemini
+        if (parsedResult.error) {
+          return NextResponse.json(
+            { error: parsedResult.error },
+            { status: 400 }
+          );
+        }
       } else {
         throw new Error("No JSON found in response");
       }

@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "JagoJualan — Asisten AI UMKM",
   description:
-    "Stop banting harga, siap tembus ekspor! JagoJualan membantu UMKM menganalisis produk dengan AI untuk strategi bisnis yang lebih cerdas.",
+    "Stop banting harga, mulai jualan cerdas! JagoJualan adalah Asisten AI UMKM untuk meracik strategi bisnis, copywriting WA/IG, dan deskripsi ekspor.",
   keywords: [
     "UMKM",
     "ekspor",
@@ -24,11 +24,11 @@ export const metadata: Metadata = {
     "strategi bisnis",
     "analisis produk",
   ],
-  authors: [{ name: "Deyafa Arsetya" }],
+  authors: [{ name: "DEYAFA ARSETYA" }],
   openGraph: {
     title: "JagoJualan — Asisten AI UMKM",
     description:
-      "Stop banting harga, siap tembus ekspor! Analisis produk cerdas dengan AI.",
+      "Stop banting harga, mulai jualan cerdas! Asisten AI yang siap membantu UMKM.",
     type: "website",
   },
   other: {

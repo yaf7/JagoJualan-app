@@ -70,9 +70,33 @@ export default function Home() {
   const handleImageSelect = (file: File) => {
     if (!file.type.startsWith("image/")) { setError("File harus berupa gambar."); return; }
     if (file.size > 10 * 1024 * 1024) { setError("Ukuran gambar maksimal 10MB."); return; }
-    setImageFile(file); setError(null);
+    setError(null);
     const reader = new FileReader();
-    reader.onload = (e) => setImagePreview(e.target?.result as string);
+    reader.onload = (e) => {
+      const result = e.target?.result as string;
+      setImagePreview(result);
+      
+      // Auto compress image for faster API upload
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const MAX_SIZE = 1080;
+        let { width, height } = img;
+        if (width > height && width > MAX_SIZE) { height *= MAX_SIZE / width; width = MAX_SIZE; }
+        else if (height > MAX_SIZE) { width *= MAX_SIZE / height; height = MAX_SIZE; }
+        
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        ctx?.drawImage(img, 0, 0, width, height);
+        
+        canvas.toBlob((blob) => {
+          if (blob) setImageFile(new File([blob], "compressed.webp", { type: "image/webp" }));
+          else setImageFile(file); // Fallback
+        }, "image/webp", 0.8);
+      };
+      img.src = result;
+    };
     reader.readAsDataURL(file);
   };
 
@@ -124,7 +148,7 @@ export default function Home() {
         <div className="max-w-2xl mx-auto px-5 pt-16 pb-12 sm:pt-24 sm:pb-16 text-center">
           <div className="animate-in mb-6 inline-flex">
             <span className="shimmer-badge text-[11px] font-semibold tracking-wide uppercase text-white shadow-lg">
-              UMKM AI Assistant
+              Asisten AI UMKM
             </span>
           </div>
           <h1 className="animate-in-1 mb-5">
@@ -135,8 +159,8 @@ export default function Home() {
               mulai jualan cerdas!
             </span>
           </h1>
-          <p className="mt-6 text-lg animate-in-2 text-balance mx-auto" style={{ color: "var(--text-secondary)", maxWidth: "500px", lineHeight: 1.6 }}>
-            Upload foto produk, masukkan harga jual dan kompetitor — dapatkan strategi bisnis, copywriting siap pakai, dan konten ekspor dalam hitungan detik.
+          <p className="mt-6 text-lg animate-in-2 text-balance mx-auto" style={{ color: "var(--text-secondary)", maxWidth: "580px", lineHeight: 1.6 }}>
+            Biar AI yang merangkai kata, Anda fokus urus pesanan. Unggah foto produk dan temukan strategi anti-perang harga, caption WA & IG, hingga konten ekspor dalam hitungan detik.
           </p>
         </div>
       </section>
@@ -144,7 +168,7 @@ export default function Home() {
       {/* ── INPUT FORM ── */}
       <section className="pb-12" id="input-section">
         <div className="max-w-2xl mx-auto px-5">
-          <div className="surface-elevated p-5 sm:p-7 animate-in-3">
+          <div className="surface-elevated p-5 sm:p-7 animate-in-3" style={{ boxShadow: "0 0 40px rgba(37, 99, 235, 0.1), inset 0 1px 0 rgba(255,255,255,0.05)" }}>
             <div className="flex items-center justify-between mb-5">
               <h2 className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>Analisis Produk</h2>
               <span className="label label-slate">Gemini AI</span>
@@ -211,7 +235,7 @@ export default function Home() {
               {isLoading ? (
                 <>
                   <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" /></svg>
-                  <span>Menganalisis produk<span className="dot-pulse"><span>.</span><span>.</span><span>.</span></span></span>
+                  <span>AI sedang meracik strategi<span className="dot-pulse"><span>.</span><span>.</span><span>.</span></span></span>
                 </>
               ) : (
                 <><span>Analisis Produk</span><IconArrow /></>
