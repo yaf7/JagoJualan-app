@@ -1,36 +1,29 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# JagoJualan 
 
-## Getting Started
+**JagoJualan** adalah Asisten AI canggih yang dirancang khusus untuk UMKM. Aplikasi ini membantu pelaku usaha untuk meracik strategi penjualan yang cerdas agar terhindar dari perang harga, serta membantu membuat konten promosi secara otomatis hanya dengan mengunggah foto produk.
 
-First, run the development server:
+**Dibuat oleh:** Deyafa Arsetya
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+##  Apa Fungsi Aplikasi Ini?
+Aplikasi ini berfungsi sebagai "otak" tambahan bagi UMKM yang bingung menentukan strategi harga, atau bingung bagaimana cara mempromosikan produknya. Cukup unggah foto produk, masukkan nama produk, harga jual Anda, dan harga kompetitor, lalu AI (Gemini) akan memprosesnya dan memberikan strategi "Anti-Perang Harga" beserta copywriting yang siap pakai. 
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+##  Fitur Utama
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. **Analisis Strategi Bisnis (Anti-Perang Harga)**
+   AI akan menganalisis foto produk Anda secara visual dan memberikan saran taktik yang konkret agar Anda bisa memenangkan persaingan tanpa harus menurunkan harga (banting harga).
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+2. **Copywriting Promosi Otomatis (Lokal & Global)**
+   - **Pasar Lokal:** Secara otomatis membuatkan draf *Broadcast* WhatsApp dan *Caption* Instagram yang menarik.
+   - **Pasar Ekspor:** Menyiapkan judul (*English Title*) dan deskripsi (*English Description*) berbahasa Inggris bagi UMKM yang siap *go international*.
 
-## Learn More
+3. **Chat Asisten AI Interaktif**
+   Punya pertanyaan lanjutan tentang strategi yang baru saja diberikan? Anda bisa langsung berbincang dengan Asisten AI melalui fitur chat yang terintegrasi di dalam aplikasi.
 
-To learn more about Next.js, take a look at the following resources:
+4. **Simpan & Riwayat Analisis**
+   Seluruh hasil analisis yang pernah dilakukan akan tersimpan dengan aman (didukung oleh Supabase) sehingga Anda dapat melihatnya kembali di menu Riwayat Terakhir.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+5. **Download Laporan Hasil Analisis**
+   Hasil analisis yang lengkap dapat diunduh (download) dan disimpan dalam bentuk gambar laporan yang rapi untuk dibagikan ke tim atau disimpan sebagai referensi.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+*Berhenti banting harga, mulai jualan cerdas dengan JagoJualan!*
